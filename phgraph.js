@@ -826,7 +826,6 @@ function phMakeComplement (cy, newGraph=false, newGraphNodeColour="MEDIUMSLATEBL
  * @param {cytoscape} cy1 - cytoscape instance (or collection) containing first tree
  * @param {cytoscape} cy2 - cytoscape instance (or collection) containing second tree
  * @returns {bool}
- * Uses algorithm outlined by A. Smal in his 2008 Tree isomophism talk (slide 5) at JASS 2008 (http://wwwmayr.in.tum.de/konferenzen/Jass08/courses/1/index.html)
  */
 function phTreesIsomorphic(cy1, cy2) {
   // Check each cytoscape instance describes a tree

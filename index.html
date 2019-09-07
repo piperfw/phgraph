@@ -58,10 +58,10 @@
 	// console.log(cy.phHasBipartiteRealisation([2,2,3,3], [2,2,3,3]));
 	// console.log(cy.phHasTreeRealisation([1,1,2]));
 	//
-	// Making graphs
+	// Making graphs (run on an empty instance)
 	//
-	// cy.remove('*');
-	// let collection = cy.phMakeGraph([1,1,2]);
+	cy.remove('*');
+	let collection = cy.phMakeGraph(degreeSequence=[1,1,2]);
 	// let collection = cy.phMakeBipartite([1,2,3],[3,2,1]);
 	// let collection = cy.phMakeBipartite([2,2,3,3], [2,2,3,3]);
 	// let collection = cy.phMakeTree([1,1,1,1,3,3]);
@@ -69,7 +69,7 @@
 	// let complement = cy.phMakeComplement();
 	// let complement = cy.phMakeComplement(true, "red");
 	//
-	// Tree Isomorphism
+	// Checking for tree isomorphism (run on an empty instance)
 	//
 	// cy.remove('*');
 	// let tree1 = cy.add([
@@ -114,14 +114,14 @@
 	// 
 	// Tree enumeration
 	//
-	let nodesAndTrees = cy.phEnumerateTrees([1,1,1,1,3,3]); // Generates 6 trees (indices 1..6)
-	cy.add(nodesAndTrees[0]);
-	cy.add(nodesAndTrees[6]);
-	var layout = cy.layout({
-		name: 'cose',
-		animate: false
-	});
-	layout.run();
+	// let nodesAndTrees = cy.phEnumerateTrees([1,1,1,1,3,3]); // Generates 6 trees (indices 1..6)
+	// cy.add(nodesAndTrees[0]);
+	// cy.add(nodesAndTrees[6]);
+	// var layout = cy.layout({
+	// 	name: 'cose',
+	// 	animate: false
+	// });
+	// layout.run();
 </script>
 </body>
 </html> 
