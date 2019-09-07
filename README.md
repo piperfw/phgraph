@@ -1,5 +1,5 @@
 # phgraph
-Graph algorithms implemented using the cytoscape.js library
+Graph algorithms implemented using the Cytoscape.js library [https://js.cytoscape.org](https://js.cytoscape.org)
 
 ## Using the library
 - Include `phgraph.js` in a `<script>` tag after loading the Cytoscape.js library
@@ -8,7 +8,8 @@ Graph algorithms implemented using the cytoscape.js library
 let cy = phCytoscape({ /* options */ })
 ``` 
 where `{ /* options */ }` are the same set of options you would pass to `cytoscape()` to initialise a core cytoscape
-object. For use of the core Cytoscape.js library, refer to [https://js.cytoscape.org](https://js.cytoscape.org)
+object. In particular the `container` option must be set in order for the objects contents to be displayed.
+For use of the core Cytoscape.js library, refer to [https://js.cytoscape.org](https://js.cytoscape.org)
 - Functions defined in `phgraph.js` may be accessed via this object, such as in
 ```js
 let collection = cy.phMakeGraph(degreeSequence=[1,1,2]);
