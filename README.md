@@ -20,7 +20,8 @@ a cytoscape instance or collection as their first argument.
 ## Available functions
 `phgraph.js` implements a set of graph theory algorithms in addition to those provided by Cytoscape.js, as well as
 functions to test and build graphs of certain types. These include:
-- TODO: List functions
+- `js phListFunctions` - Return array of functions bound to `cy`
+- 
 
 
 Comments in `phgraph.js` provide minimal documentation for these functions; for example usage see `index.html`.
