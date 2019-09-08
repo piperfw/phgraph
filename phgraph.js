@@ -598,11 +598,18 @@ function phEnumerateTrees(cy, degreeSeq) {
 	attachLeaf(vertArr);
 	// Remove duplicates from allEdges. Note this does NOT check for isomorphism
 	removeDuplicates();
-	// Test trees represented by remaining edges for isomorphism and removes duplicates up to isomorphism
-	removeIsomorphic();
-	// Array of cytoscape collections to be returned
+	// Array of cytoscape collections to be returned; first element a collection of nodes, all others collection of edges
 	let rtnArr = [];
-	fillRtnArr();
+  // Cytoscape collections of edges, to be pruned for isomorphism
+  let cyEdgeArr = [];
+  // Empty cytoscape object to hold the collections (Note no 'container' option hence no display of these elements)
+  let tempCy = cytoscape();
+  // Add collection of nodes to rtnArr and fill cyEdgeArr
+	genCyCollections();
+  // Removes duplicates up to isomorphism from cyEdgeArr
+  removeIsomorphic();
+  // Append remaining edge collections onto rtnArr
+  rtnArr.push(...cyEdgeArr);
 	// Notify how many sets of edges were generated
 	console.log('Edges for ' + (rtnArr.length - 1) + ' trees generated (indices 1..' + (rtnArr.length - 1) + ' of returned array).');
 	return rtnArr;
@@ -722,16 +729,9 @@ function phEnumerateTrees(cy, degreeSeq) {
 		return true;
 	}
 
-
-	function removeIsomorphic () {
-		// TODO: From Ben
-	}
-
-	// Generate cytoscape collections from the arrays of pVertex and pEdge arrays to return (so caller can add directly to cy)
-	function fillRtnArr () {
-		// Empty cytoscape object to hold the collections (Note no 'container' option hence no display of these elements)
-		let tempCy = cytoscape();
-		// Collection of nodes; first element of rtnArr.
+	// Generate cytoscape collections from the arrays of pVertex and pEdge arrays
+	function genCyCollections () {
+		// Collection of nodes; these can go directly onto rtnArry
 	 	let nodeCollection = tempCy.collection();
 		vertArr.forEach ( vertex => {
 			let node = tempCy.add({ group: 'nodes', data: { id: vertex.id }});
@@ -745,9 +745,31 @@ function phEnumerateTrees(cy, degreeSeq) {
 				let cyEdge = tempCy.add({ group: 'edges', data: { id: edge.id, source: edge.source, target: edge.target }});
 				edgeCollection = edgeCollection.union(cyEdge);
 			});
-			rtnArr.push(edgeCollection);
+			cyEdgeArr.push(edgeCollection);
 		} );
 	}
+
+  // Remove edges from cyEdgeArr which correspond to (given the fixed set of vertices) isomorphic trees
+  // This is done via calls to phTreesIsomorphic
+  function removeIsomorphic () {
+    // Iterate backwards through cyEdgeArr: Start with final element and compare to first, second, third,...(final-1)
+    // If a match (isomorphic tree) is found, remove the final element and continue with the reduced array
+    for (let i=(cyEdgeArr.length - 1); i >= 0; i--) {
+      // Obviously do not test a tree against itself (i===j)
+      for (let j=0; j < i; j++) {
+        // Cytoscape collections describing the trees to be tested (phTreesIsomorphic requires full tree, not just edges)
+        let tree1 = rtnArr[0].union(cyEdgeArr[i]); // Recall rtnArr[0] is collection of nodes
+        let tree2 = rtnArr[0].union(cyEdgeArr[j]);
+        if (phTreesIsomorphic(tree1, tree2)) {
+          // console.log('Edges at ' + j + ' & ' + i + ' describe isomorphic trees, deleting ' + i);
+          // Remove duplicate. As iterating through array backwards this does not cause issues
+          cyEdgeArr.splice(i,1); // Modifies in place
+          // Break from inner loop
+          break;
+        }
+      }
+    }
+  }
 }
 
 /*
@@ -833,25 +855,25 @@ function phTreesIsomorphic(cy1, cy2) {
     console.error('One of graphs is not a tree.');
     return;
   }
-  console.log('Both graphs are trees.');
+  // console.log('Both graphs are trees.');
   // Find the centre(s) of each tree
   let t1Centre = phFindCentres(cy1);
   let t2Centre = phFindCentres(cy2);
   // Three cases
   // a) Trees have different number of centres -> not isomorphic
   if (t1Centre.length !== t2Centre.length) {
-    console.log('Trees have different count of centres hence are not isomorphic.');
+    // console.log('Trees have different count of centres hence are not isomorphic.');
     return false;
   }
   // b) each tree has only one centre
   if (t1Centre.length === 1) {
     // Perform rooted tree isomorphism check with centres as roots
-    console.log('Performing rooted isomorphism check with unique centres.');
+    // console.log('Performing rooted isomorphism check with unique centres.');
     return phRootedTreesIsomorphic(cy1, t1Centre[0], cy2, t2Centre[0]);
   }
   // c) Each tree has two centres
   // Perform rooted tree check twice, changing the centre used as the root for the first tree in the second check
-  console.log('Performing rooted isomorphism check with two different centres:');
+  // console.log('Performing rooted isomorphism check with two different centres:');
   return phRootedTreesIsomorphic(cy1, t1Centre[0], cy2, t2Centre[0]) || phRootedTreesIsomorphic(cy1, t1Centre[1], cy2, t2Centre[0]);
 }
 /*
@@ -972,7 +994,7 @@ function phRootedTreesIsomorphic (tree1, root1, tree2, root2) {
   // Use a depth first search of each tree to fill Vertex arrays
   let dfs1 = tree1.depthFirstSearch({
      // Root to start the search from
-    root:cy.$('#' + root1.id()),
+    root:'#'+root1.id(),
     // Handler function called upon visiting each node: v is the current node, u the previous node, e their
     // connecting edge, i the index indicating the ith visited node and depth the depth of this node
     // We need the ids of the node, its parent as well as its depth to construct our Vertex object
@@ -981,7 +1003,8 @@ function phRootedTreesIsomorphic (tree1, root1, tree2, root2) {
       vertices1.push(new Vertex(v.id(), depth, parentId));
     }
   });
-  let dfs2 = tree2.depthFirstSearch({root:cy.$('#' + root2.id()),
+  let dfs2 = tree2.depthFirstSearch({
+    root:'#'+root2.id(),
     visit: function(v, e, u, i, depth) {
       let parentId = (depth === 0) ? undefined : u.id();
       vertices2.push(new Vertex(v.id(), depth, parentId));
@@ -992,7 +1015,7 @@ function phRootedTreesIsomorphic (tree1, root1, tree2, root2) {
   let tree2Height = vertices2.reduce( (a,b) => (b.depth > a.depth) ? b : a).depth;
   // Trees of different heights are certainly not isomorphic
   if (tree1Height !== tree2Height) {
-    console.log('Rooted trees have different heights and so not isomorphic.');
+    // console.log('Rooted trees have different heights and so not isomorphic.');
     return false;
   }
   // Javascript way of creating an array of empty arrays of fixed length treeHeight + 1
@@ -1009,7 +1032,7 @@ function phRootedTreesIsomorphic (tree1, root1, tree2, root2) {
     assignLevelInts(tree2Levels[i]);
     // Trees must have the same number of vertices at each level in order to be isomorphic
     if (tree1Levels[i].length !== tree2Levels[i].length) {
-      console.log('Rooted trees do not have the same number of vertices at level ' + i + ' and so are not isomorphic.');
+      // console.log('Rooted trees do not have the same number of vertices at level ' + i + ' and so are not isomorphic.');
       return false;
     }
     // Flag to toggle if a reason trees are not isomorphic are found (why use flag? Cannot return from within a .forEach)
@@ -1019,7 +1042,7 @@ function phRootedTreesIsomorphic (tree1, root1, tree2, root2) {
       // compareVertexTuples(v1,v2) returns 0 if v1.assignedTuple and v2.assignedTuple are identical
       // We can compare Vertices at corresponding positions in tree1Levels & tree2Levels because these arrays have been sorted
       if (compareVertexTuples(vertex, tree2Levels[i][index]) !== 0) {
-        console.log('Sequences of tuples at level ' + i + ' do not match; rooted trees not isomorphic.');
+        // console.log('Sequences of tuples at level ' + i + ' do not match; rooted trees not isomorphic.');
         isomorphic = false;
       }
     });
