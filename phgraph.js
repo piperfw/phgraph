@@ -85,29 +85,33 @@ function phNonNegativeSequence (sequence) {
  */
 function phHasGraphRealisation (degreeSeq) {
 	// Check sequence contains non-negative integers only
-  	if (!phNonNegativeSequence(degreeSeq)) { 
-  		console.error('Vertex degrees must be non-negative.');
-  		return false;
-  	}
-  	// Sort in reverse order as per theorem statement
-  	degreeSeq = degreeSeq.sort((a,b) => b - a);
-  	// Loop to calculate theorem formula at each k = 1...n where n is number of vertices
-  	for (let k = 1; k <= degreeSeq.length; k++) {
-  		// Get first k (highest degree) terms
-  		let kHighestDegrees = degreeSeq.slice(0, k);
-  		// And remaining terms
-  		let nMinusKLowestDegrees = degreeSeq.slice(k);
-  		// Sum over all k highest degrees = LHS of formula
-  		let degreeSum = kHighestDegrees.reduce((sum, degree) => sum + degree, 0);
-  		// Sum over min(d_i,k) for remaining degrees
-  		let minSum = nMinusKLowestDegrees.reduce((sum, degree) => sum + Math.min(degree, k), 0);
-  		// if, at any k, degreeSum > k(k-1 ) + minSum, sequence is non-graphic
-  		if (degreeSum > k*(k-1) + minSum) {
-  			return false;
-  		}
-  	}
-  	// At all k, degreeSum <= k(k-1) + minSum <=> sequence is graphic
-  	return true;
+	if (!phNonNegativeSequence(degreeSeq)) { 
+		console.error('Vertex degrees must be non-negative.');
+		return false;
+	}
+  // Check sum of degrees is even
+  if (degreeSeq.reduce((sum, degree) => sum + degree, 0) % 2 === 1) {
+    return false;
+  }
+	// Sort in reverse order as per theorem statement
+	degreeSeq = degreeSeq.sort((a,b) => b - a);
+	// Loop to calculate theorem formula at each k = 1...n where n is number of vertices
+	for (let k = 1; k <= degreeSeq.length; k++) {
+		// Get first k (highest degree) terms
+		let kHighestDegrees = degreeSeq.slice(0, k);
+		// And remaining terms
+		let nMinusKLowestDegrees = degreeSeq.slice(k);
+		// Sum over all k highest degrees = LHS of formula
+		let degreeSum = kHighestDegrees.reduce((sum, degree) => sum + degree, 0);
+		// Sum over min(d_i,k) for remaining degrees
+		let minSum = nMinusKLowestDegrees.reduce((sum, degree) => sum + Math.min(degree, k), 0);
+		// if, at any k, degreeSum > k(k-1 ) + minSum, sequence is non-graphic
+		if (degreeSum > k*(k-1) + minSum) {
+			return false;
+		}
+	}
+  // At all k, degreeSum <= k(k-1) + minSum (and sum degrees even) <=> sequence is graphic
+	return true;
 }
 /*
  * Tests whether two sequences of non-negative integers have a simple bipartite graph realisation (Gale–Ryser theorem)
